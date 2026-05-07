@@ -11,11 +11,6 @@ import logging
 
 app = Flask(__name__)
 
-app.config['DEBUG'] = True
-
-#app.config['SECRET_KEY'] = 'mi-clave-super-secreta-hardcodeada-1234'
-#API_KEY = '1234567890abcdef1234567890abcdef'
-
 logger = logging.getLogger(__name__)
 DB_PATH = os.getenv('DB_PATH', 'database.db')
 
