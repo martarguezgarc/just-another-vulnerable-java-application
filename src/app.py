@@ -11,7 +11,7 @@ import logging
 
 app = Flask(__name__)
 
-app.config['DEBUG'] = False
+app.config['DEBUG'] = True
 
 logger = logging.getLogger(__name__)
 DB_PATH = os.getenv('DB_PATH', 'database.db')
