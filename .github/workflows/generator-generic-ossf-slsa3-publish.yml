@@ -32,9 +32,11 @@ jobs:
       # ========================================================
       - name: Build artifacts
         run: |
+            # El proyecto al ser java generamos un .jar
+            mvn package # Si se usa Maven
             # Al usar setup.py, primero se deben generar distribuciones, no solo build
-            python -m pip install --upgrade pip setuptools wheel
-            python setup.py sdist bdist_whee
+            #python -m pip install --upgrade pip setuptools wheel
+            #python setup.py sdist bdist_whee
             # python setup.py build # Esto genera archivos internos, no paquetes finales útiles
 
 
@@ -51,8 +53,9 @@ jobs:
         run: |
           set -euo pipefail
 
+          files=$(ls target/*.jar)
           # List the artifacts the provenance will refer to.
-          files=$(ls dist/*)
+          # files=$(ls dist/*)
           # Generate the subjects (base64 encoded).
           echo "hashes=$(sha256sum $files | base64 -w0)" >> "${GITHUB_OUTPUT}"
 
