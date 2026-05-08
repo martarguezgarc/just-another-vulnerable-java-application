@@ -32,9 +32,11 @@ jobs:
       # ========================================================
       - name: Build artifacts
         run: |
-            # These are some amazing artifacts.
-            echo "artifact1" > artifact1
-            echo "artifact2" > artifact2
+            # Al usar setup.py, primero se deben generar distribuciones, no solo build
+            python -m pip install --upgrade pip setuptools wheel
+            python setup.py sdist bdist_whee
+            # python setup.py build # Esto genera archivos internos, no paquetes finales útiles
+
 
       # ========================================================
       #
@@ -50,7 +52,7 @@ jobs:
           set -euo pipefail
 
           # List the artifacts the provenance will refer to.
-          files=$(ls artifact*)
+          files=$(ls dist/*)
           # Generate the subjects (base64 encoded).
           echo "hashes=$(sha256sum $files | base64 -w0)" >> "${GITHUB_OUTPUT}"
 
