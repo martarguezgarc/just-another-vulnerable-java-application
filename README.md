@@ -124,8 +124,7 @@ El job debe:
 - Calcular hashes SHA256
 - Exportar los hashes como output
 
-<img width="1609" height="239" alt="image" src="https://github.com/user-attachments/assets/81939848-de6d-4253-b6a8-50d7fbdd60c6" />
-
+<img width="1560" height="165" alt="image" src="https://github.com/user-attachments/assets/b76124a7-6877-402f-a706-6b70b87b2607" />
 
 ### Explicación de Permisos
 
