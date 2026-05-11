@@ -15,57 +15,66 @@ on:
   workflow_dispatch:
   release:
     types: [created]
+  push:
+    tags:
+      - "v*"
 
 jobs:
   build:
     runs-on: ubuntu-latest
     outputs:
       digests: ${{ steps.hash.outputs.digests }}
+      artifact-name: ${{ steps.build.outputs.artifact-name }}
 
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+        
       # ========================================================
       #
       # Step 1: Build your artifacts.
       #
       # ========================================================
-      - name: Build artifacts
+      - name: Build with Maven
+        id: build
         run: |
-            # El proyecto al ser java generamos un .jar
-            mvn package # Si se usa Maven
-            # Al usar setup.py, primero se deben generar distribuciones, no solo build
-            #python -m pip install --upgrade pip setuptools wheel
-            #python setup.py sdist bdist_whee
-            # python setup.py build # Esto genera archivos internos, no paquetes finales útiles
-
-
-      # ========================================================
-      #
-      # Step 2: Add a step to generate the provenance subjects
-      #         as shown below. Update the sha256 sum arguments
-      #         to include all binaries that you generate
-      #         provenance for.
-      #
-      # ========================================================
-      - name: Generate subject for provenance
+          mvn clean package -DskipTests
+          ARTIFACT_NAME=$(ls target/*.jar | head -1 | xargs basename)
+          echo "artifact-name=$ARTIFACT_NAME" >> "$GITHUB_OUTPUT"
+      
+      - name: Generate subject digest for provenance
         id: hash
         run: |
-          set -euo pipefail
+          ARTIFACT_PATH="target/${{ steps.build.outputs.artifact-name }}"
+          DIGEST=$(sha256sum "$ARTIFACT_PATH" | base64 -w0)
+          echo "digest=$DIGEST" >> "$GITHUB_OUTPUT"
+      
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: java-artifact
+          path: target/${{ steps.build.outputs.artifact-name }}
 
-          files=$(ls target/*.jar)
-          # List the artifacts the provenance will refer to.
-          # files=$(ls dist/*)
-          # Generate the subjects (base64 encoded).
-          echo "hashes=$(sha256sum $files | base64 -w0)" >> "${GITHUB_OUTPUT}"
-
+  # ========================================================
+  #
+  # Step 2: Add a step to generate the provenance subjects
+  #         as shown below. Update the sha256 sum arguments
+  #         to include all binaries that you generate
+  #         provenance for.
+  #
+  # ========================================================
   provenance:
     needs: [build]
     permissions:
       actions: read   # To read the workflow path.
       id-token: write # To sign the provenance.
       contents: write # To add assets to a release.
-    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.0.0
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
     with:
       base64-subjects: "${{ needs.build.outputs.digests }}"
       upload-assets: true # Optional: Upload to a new release
